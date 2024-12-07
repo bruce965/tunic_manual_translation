@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tunic Manual Translation</title>
+  <link rel="stylesheet" href="res/styles.css">
+</head>
+<body>
+  <div id="page">
+    <img alt="No page loaded" />
+    <div class="word">
+      <span class="word-meaning">Hello</span>
+      <button class="remove">x</button>
+    </div>
+    <div class="symbol">
+      <button class="remove">x</button>
+    </div>
+    <div class="link">
+      <button class="remove">x</button>
+    </div>
+  </div>
+
+  <div id="nav" class="ui">
+    <div class="section">
+      <button id="prev_page" class="button" title="Shortcut: LEFT">&lt;</button>
+      <select id="page_select" class="button">
+        <option>TEMPLATE</option>
+      </select>
+      <button id="next_page" class="button" title="Shortcut: RIGHT">&gt;</button>
+      <button id="go_to_toc" class="button" title="Shortcut: I">Go to ToC</button>
+    </div>
+    <hr/>
+    <div class="section">
+      <button id="mode_view" class="button" title="Shortcut: V">View</button>
+      <button id="mode_word" class="button" title="Shortcut: W">Words</button>
+      <button id="mode_symbol" class="button" title="Shortcut: S">Symbols</button>
+      <button id="mode_link" class="button" title="Shortcut: L">Links</button>
+    </div>
+  </div>
+
+  <div id="props_word" class="ui hidden">
+    <div class="section">
+      <span class="center">Word</span>
+    </div>
+    <hr/>
+    <div class="section">
+      TODO
+    </div>
+  </div>
+
+  <div id="props_symbol" class="ui hidden">
+    <div class="section">
+      <span class="center">Symbol</span>
+    </div>
+    <hr/>
+    <div class="section">
+      TODO
+    </div>
+  </div>
+
+  <div id="props_link" class="ui">
+    <div class="section">
+      <span class="center">Link</span>
+    </div>
+    <hr/>
+    <div class="section">
+      <label class="section">
+        Ref:
+        <select id="link_ref_select" class="button">
+          <option>TEMPLATE</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <script src="res/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+/* SPDX-FileCopyrightText: Copyright 2024 Fabio Iotti */
+/* SPDX-License-Identifier: AGPL-3.0-only */
+
+:root {
+  color-scheme: dark;
+  font-family: system-ui, sans-serif;
+}
+
+html {
+  width: 100vw;
+  height: 100vh;
+
+  overflow: hidden;
+}
+
+#page {
+  --top: 0;
+  --left: 0;
+
+  position: absolute;
+  top: calc(var(--top) * 1px);
+  left: calc(var(--left) * 1px);
+
+  min-width: 60rem;
+  min-height: 37rem;
+
+  background: black;
+}
+
+.ui {
+  z-index: 100;
+  position: fixed;
+
+  padding: 1rem;
+  
+  background: #0008;
+  border-radius: 1rem;
+
+  &.hidden {
+    display: none;
+  }
+
+  .section {
+    display: flex;
+    gap: .2em;
+
+    > * {
+      flex-grow: 1;
+    }
+  }
+
+  .center {
+    text-align: center;
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px solid #8888;
+  }
+}
+
+#nav {
+  top: 1rem;
+  left: 1rem;
+
+  width: 15rem;
+}
+
+#props_word, #props_symbol, #props_link {
+  top: 1rem;
+  right: 1rem;
+
+  width: 15rem;
+}
+
+.button {
+  padding: .2em .6em;
+  border: 0;
+  border-radius: .2em;
+
+
+  &.active {
+    background: #088;
+  }
+}
+
+.word, .symbol, .link {
+  --top: 0;
+  --left: 0;
+  --width: 0;
+  --height: 0;
+
+  --element-base-color: gray;
+
+  position: absolute;
+  top: calc(var(--top) * 1px);
+  left: calc(var(--left) * 1px);
+  width: calc(var(--width) * 1px);
+  height: calc(var(--height) * 1px);
+
+  pointer-events: none;
+
+  --element-color: color(from var(--element-base-color) srgb r g b / .5);
+  border: 1px dashed var(--element-color);
+
+  &.active {
+    margin: -1px;
+    border-width: 2px;
+  }
+
+  .remove {
+    display: none;
+    
+    position: absolute;
+    cursor: pointer;
+    right: .05rem;
+    top: .05rem;
+
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: .2rem;
+    line-height: 1;
+    width: .8rem;
+    height: .8rem;
+    
+    background: color(from var(--element-base-color) srgb r g b / .5);
+
+    &:hover {
+      background: var(--element-base-color);
+    }
+  }
+}
+
+.word {
+  --element-base-color: #f00;
+
+  body.mode-word & {
+    .remove {
+      display: initial;
+    }
+  }
+
+  body.mode-view &, body.mode-word & {
+    z-index: 2;
+    cursor: pointer;
+    pointer-events: auto;
+    --element-color: var(--element-base-color);
+  }
+
+  .word-meaning {
+    position: absolute;
+    font-size: .6rem;
+    color: var(--element-color);
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+
+    text-align: center;
+
+    text-transform: uppercase;
+  }
+}
+
+.symbol {
+  --element-base-color: #f80;
+
+  body.mode-symbol & {
+    .remove {
+      display: initial;
+    }
+  }
+
+  body.mode-symbol & {
+    z-index: 1;
+    cursor: pointer;
+    pointer-events: auto;
+    --element-color: var(--element-base-color);
+  }
+}
+
+.link {
+  --element-base-color: #08f;
+
+  body.mode-link & {
+    .remove {
+      display: initial;
+    }
+  }
+
+  body.mode-view &, body.mode-link & {
+    z-index: 3;
+    cursor: pointer;
+    pointer-events: auto;
+    --element-color: var(--element-base-color);
+  }
+}
