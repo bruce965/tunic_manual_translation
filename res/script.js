@@ -26,6 +26,8 @@ const propsWord = /** @type {HTMLDivElement} */(document.getElementById('props_w
 const propsSymbol = /** @type {HTMLDivElement} */(document.getElementById('props_symbol'));
 const propsLink = /** @type {HTMLDivElement} */(document.getElementById('props_link'));
 
+const wordSymbols = /** @type {SVGElement} */(/** @type {unknown} */(document.querySelector('.word-symbols')));
+const wordSymbolTemplate = /** @type {SVGSVGElement} */(wordSymbols.querySelector('svg'));
 const wordMeaningInput = /** @type {HTMLInputElement} */(document.getElementById('word_meaning'));
 const wordNotesTextarea = /** @type {HTMLTextAreaElement} */(document.getElementById('word_notes'));
 
@@ -255,6 +257,8 @@ const addNewElement = (type, x, y, width, height) => {
 
   // Refresh page.
   loadPageElements(pageSelect.value);
+
+  showProps(type, id);
 };
 
 /**
@@ -484,7 +488,8 @@ const loadPageElements = (pageId) => {
 
     const dictionary = data.dictionary ?? {};
     if (dictionary) {
-      const dictionaryId = getDictionaryId(pageId, word);
+      const wordSymbols = getWordSymbols(pageId, word);
+      const dictionaryId = getDictionaryId(wordSymbols);
       const dictionaryWord = dictionary[dictionaryId];
 
       /** @type {HTMLDivElement} */(el.querySelector('.word-meaning')).textContent = dictionaryWord?.tran ?? '';
@@ -507,6 +512,9 @@ const loadPageElements = (pageId) => {
       // When clicked...
       showProps('SYMBOL', id);
     });
+
+    if (!symbol.v)
+      el.classList.add('empty');
 
     currentPageElements[id] = el;
   }
@@ -607,7 +615,7 @@ let lastSelectedWord = '';
  * @param {number} pageId
  * @param {SymbolData} word
  */
-const getDictionaryId = (pageId, word) => {
+const getWordSymbols = (pageId, word) => {
   const page = data.pages ??= {};
   const currentPage = page[pageId] ??= {};
   const pageSymbols = currentPage.symbols ??= {};
@@ -628,7 +636,23 @@ const getDictionaryId = (pageId, word) => {
   // TODO: handle upside-down words (add a checkbox on the word rectangle), sorting symbols from right to left.
   wordSymbols.sort((a, b) => a.x - b.x);
 
-  return wordSymbols.map(s => s.v.toString(36)).join('-');
+  return wordSymbols.map(s => s.v);
+};
+
+/** @param {number[]} wordSymbols */
+const getDictionaryId = (wordSymbols) => {
+  return wordSymbols.map(v => v.toString(36)).join('-');
+};
+
+/** @param {number} symbol */
+const getSymbolMaskForCss = (symbol) => {
+  let result = '';
+  for (let c = 'a'.charCodeAt(0); symbol; c++, symbol >>= 1) {
+    if (symbol & 1)
+      result += String.fromCharCode(c);
+  }
+
+  return result;
 };
 
 /**
@@ -636,20 +660,27 @@ const getDictionaryId = (pageId, word) => {
  * @param {SymbolData} word
  */
 const loadWord = (pageId, word) => {
-  lastSelectedWord = getDictionaryId(pageId, word);
+  const selectedWordSymbols = getWordSymbols(pageId, word);
+  lastSelectedWord = getDictionaryId(selectedWordSymbols);
 
-  // TODO: clear existing symbols in UI.
+  while (wordSymbols.firstChild)
+    wordSymbols.firstChild.remove();
 
-  // TODO: add word symbols to UI.
+  for (const symbol of selectedWordSymbols) {
+    const symbolMask = getSymbolMaskForCss(symbol);
+    const el = /** @type {SVGSVGElement} */(wordSymbolTemplate.cloneNode(true));
+    el.setAttribute('data-symbol', symbolMask);
+    wordSymbols.appendChild(el);
+  }
 
   const dictionary = data.dictionary ??= {};
   const currentWord = dictionary[lastSelectedWord] ??= {};
 
   wordMeaningInput.value = currentWord.tran ?? '';
   wordNotesTextarea.value = currentWord.note ?? '';
-
-  // TODO: add preview image for the word to the UI.
 };
+
+wordSymbolTemplate.remove();
 
 wordMeaningInput.addEventListener('keyup', ev => {
   const dictionary = data.dictionary ??= {};
@@ -777,6 +808,11 @@ window.addEventListener('keyup', ev => {
   console.debug(ev.key);
 
   switch (ev.key) {
+    case 'Escape':
+      ev.preventDefault();
+      hideProps();
+      break;
+
     case 'ArrowLeft':
       ev.preventDefault();
       goToPrevPage();
@@ -823,3 +859,13 @@ window.addEventListener('keyup', ev => {
 
 goToPage(pageSelect.value);
 setEditMode(currentEditMode);
+
+if (Object.keys(data).length == 0) {
+  (async () => {
+    const response = await fetch("res/data.json");
+    const exampleData = await response.json();
+
+    data = exampleData;
+    goToPage(pageSelect.value);
+  })();
+}

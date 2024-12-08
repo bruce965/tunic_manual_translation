@@ -123,7 +123,19 @@ html {
     width: 3em;
     margin: 0 calc(-3em / 8);
 
-    .active {
+    .word_middle_line,
+    &[data-symbol*='a'] .word_outer_top_left,
+    &[data-symbol*='b'] .word_outer_top_right,
+    &[data-symbol*='c'] .word_outer_left,
+    &[data-symbol*='d'] .word_outer_bottom_left,
+    &[data-symbol*='e'] .word_outer_bottom_right,
+    &[data-symbol*='f'] .word_inner_top_left,
+    &[data-symbol*='g'] .word_inner_top_middle,
+    &[data-symbol*='h'] .word_inner_top_right,
+    &[data-symbol*='i'] .word_inner_bottom_left,
+    &[data-symbol*='j'] .word_inner_bottom_middle,
+    &[data-symbol*='k'] .word_inner_bottom_right,
+    &[data-symbol*='l'] .word_circle {
       stroke: #fff;
     }
   }
@@ -145,7 +157,7 @@ html {
   }
 }
 
-#symbol_preview, #word_preview {
+#symbol_preview {
   background: black;
   background-repeat: no-repeat;
 
@@ -214,7 +226,7 @@ html {
   }
 
   body.mode-view &, body.mode-word & {
-    z-index: 2;
+    z-index: 3;
     cursor: pointer;
     pointer-events: auto;
     --element-color: var(--element-base-color);
@@ -249,6 +261,10 @@ html {
     cursor: pointer;
     pointer-events: auto;
     --element-color: var(--element-base-color);
+
+    &.empty {
+      background: color(from var(--element-base-color) srgb r g b / .5);
+    }
   }
 }
 
@@ -262,7 +278,7 @@ html {
   }
 
   body.mode-view &, body.mode-link & {
-    z-index: 3;
+    z-index: 2;
     cursor: pointer;
     pointer-events: auto;
     --element-color: var(--element-base-color);

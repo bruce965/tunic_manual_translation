@@ -2,8 +2,8 @@ Tunic Manual Translation
 ========================
 
 This is a tool I developed to help me translate the game manual for the
-[Tunic](https://en.wikipedia.org/wiki/Tunic_(video_game)) video game, which
-is written in a mix of English and a constructed language.
+[Tunic](https://tunicgame.com/) video game, which is written in a mix of English
+and a constructed language.
 
 > [!CAUTION]
 > If you plan to play Tunic in the future please stop reading immediately,

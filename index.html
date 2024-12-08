@@ -46,7 +46,7 @@
     <hr/>
     <div class="section">
       <div class="word-symbols">
-        <svg viewBox="0 0 24 42">
+        <svg viewBox="0 0 24 42" data-symbol="">
           <g fill="none" stroke="#0000" stroke-linecap="round">
             <path class="word_outer_top_left" d="M 3,9 12,3" />
             <path class="word_outer_top_right" d="m 12,3 9,6" />
@@ -60,7 +60,7 @@
             <path class="word_inner_bottom_middle" d="m 12,15 v 3 m 0,3 v 12" />
             <path class="word_inner_bottom_right" d="m 12,21 9,6" />
             <circle class="word_circle" cx="12" cy="36.2" r="2.8" />
-            <path d="M 3,18 H 21" class="active" />
+            <path class="word_middle_line" d="M 3,18 H 21" />
           </g>
         </svg>
       </div>
@@ -70,10 +70,6 @@
       <input id="word_meaning" class="button"/>
     </label>
     <textarea id="word_notes" class="button spacing section" placeholder="Notes"></textarea>
-    <hr/>
-    <div class="section">
-      <div id="word_preview"></div>
-    </div>
   </div>
 
   <div id="props_symbol" class="ui hidden">
@@ -83,7 +79,7 @@
     <hr/>
     <div class="section">
       <svg class="symbol-editor" viewBox="0 0 24 42">
-        <g fill="none" stroke="#282828" stroke-linecap="round">
+        <g fill="none" stroke="#282828" stroke-width="2" stroke-linecap="round">
           <path d="M 3,9 12,3" />
           <path d="m 12,3 9,6" />
           <path d="m 3,21 v 6 M 3,9 v 9" />
@@ -97,7 +93,7 @@
           <path d="m 12,21 9,6" />
           <circle cx="12" cy="36.2" r="2.8" />
         </g>
-        <g fill="none" stroke="#0000" stroke-linecap="round">
+        <g fill="none" stroke="#0000" stroke-width="2" stroke-linecap="round">
           <path id="outer_top_left" d="M 3,9 12,3" />
           <path id="outer_top_right" d="m 12,3 9,6" />
           <path id="outer_left" d="m 3,21 v 6 M 3,9 v 9" />
