@@ -22,6 +22,30 @@ const modeWordButton = /** @type {HTMLButtonElement} */(document.getElementById(
 const modeSymbolButton = /** @type {HTMLButtonElement} */(document.getElementById('mode_symbol'));
 const modeLinkButton = /** @type {HTMLButtonElement} */(document.getElementById('mode_link'));
 
+const propsWord = /** @type {HTMLDivElement} */(document.getElementById('props_word'));
+const propsSymbol = /** @type {HTMLDivElement} */(document.getElementById('props_symbol'));
+const propsLink = /** @type {HTMLDivElement} */(document.getElementById('props_link'));
+
+const wordMeaningInput = /** @type {HTMLInputElement} */(document.getElementById('word_meaning'));
+const wordNotesTextarea = /** @type {HTMLTextAreaElement} */(document.getElementById('word_notes'));
+
+const symbolOuterTopLeftPath = /** @type {SVGPathElement} */(/** @type {unknown} */(document.getElementById('outer_top_left')));
+const symbolOuterTopRightPath = /** @type {SVGPathElement} */(/** @type {unknown} */(document.getElementById('outer_top_right')));
+const symbolOuterLeftPath = /** @type {SVGPathElement} */(/** @type {unknown} */(document.getElementById('outer_left')));
+const symbolOuterBottomLeftPath = /** @type {SVGPathElement} */(/** @type {unknown} */(document.getElementById('outer_bottom_left')));
+const symbolOuterBottomRightPath = /** @type {SVGPathElement} */(/** @type {unknown} */(document.getElementById('outer_bottom_right')));
+const symbolInnerTopLeftPath = /** @type {SVGPathElement} */(/** @type {unknown} */(document.getElementById('inner_top_left')));
+const symbolInnerTopMiddlePath = /** @type {SVGPathElement} */(/** @type {unknown} */(document.getElementById('inner_top_middle')));
+const symbolInnerTopRightPath = /** @type {SVGPathElement} */(/** @type {unknown} */(document.getElementById('inner_top_right')));
+const symbolInnerBottomLeftPath = /** @type {SVGPathElement} */(/** @type {unknown} */(document.getElementById('inner_bottom_left')));
+const symbolInnerBottomMiddlePath = /** @type {SVGPathElement} */(/** @type {unknown} */(document.getElementById('inner_bottom_middle')));
+const symbolInnerBottomRightPath = /** @type {SVGPathElement} */(/** @type {unknown} */(document.getElementById('inner_bottom_right')));
+const symbolCirclePath = /** @type {SVGCircleElement} */(/** @type {unknown} */(document.getElementById('circle')));
+const symbolPreview = /** @type {HTMLDivElement} */(document.getElementById('symbol_preview'));
+
+const linksRefSelect = /** @type {HTMLSelectElement} */(document.getElementById('link_ref_select'));
+const linksRefSelectOptionTemplate = /** @type {HTMLOptionElement} */(linksRefSelect.querySelector('option'));
+
 //#region Page selection
 
 const TOC_PAGE_ID = "pg02";
@@ -37,7 +61,7 @@ const PAGES = {
   "pg13": { src: "res/manual/page13-14.png", label: "13-14" },
   "pg15": { src: "res/manual/page15-16.png", label: "15-16" },
   "pg17": { src: "res/manual/page17-18.png", label: "17-18" },
-  "pg19": { src: "res/manual/page19-20.png", label: "29-20" },
+  "pg19": { src: "res/manual/page19-20.png", label: "19-20" },
   "pg21": { src: "res/manual/page21-22.png", label: "21-22" },
   "pg23": { src: "res/manual/page23-24.png", label: "23-24" },
   "pg25": { src: "res/manual/page25-26.png", label: "25-26" },
@@ -146,6 +170,8 @@ const setEditMode = (/** @type {EditMode} */mode) => {
   currentEditMode = mode;
 
   localStorage.setItem('tunic_manual_translation.edit_mode', currentEditMode);
+
+  hideProps();
 };
 
 modeViewButton.addEventListener('click', ev => {
@@ -169,7 +195,6 @@ modeLinkButton.addEventListener('click', ev => {
 });
 
 currentEditMode = /** @type {EditMode|null} */(localStorage.getItem('tunic_manual_translation.edit_mode')) ?? 'VIEW';
-setEditMode(currentEditMode);
 
 //#endregion
 
@@ -414,13 +439,15 @@ panBy(0, 0);
 
 /** @typedef {{ x: number, y: number, w: number, h: number }} WordData */
 
-/** @typedef {{ x: number, y: number, w: number, h: number }} SymbolData */
+/** @typedef {{ x: number, y: number, w: number, h: number, v?: number }} SymbolData */
 
 /** @typedef {{ x: number, y: number, w: number, h: number, ref?: string }} LinkData */
 
+/** @typedef {{ tran?: string, note?: string }} DictionaryData */
+
 /** @typedef {{ words?: Record<GUID, WordData>, symbols?: Record<GUID, SymbolData>, links?: Record<GUID, LinkData> }} PageData */
 
-/** @typedef {{ pages?: Record<string, PageData> }} Database */
+/** @typedef {{ pages?: Record<string, PageData>, dictionary?: Record<string, DictionaryData> }} Database */
 
 /** @type {Database} */
 let data = {};
@@ -442,35 +469,43 @@ const loadPageElements = (pageId) => {
   
   const pageWords = pageData.words;
   for (const id in pageWords) {
-    const data = pageWords[id];
-    const el = createDrawingElement('WORD', data.x, data.y, data.w, data.h, () => {
+    const word = pageWords[id];
+    const el = createDrawingElement('WORD', word.x, word.y, word.w, word.h, () => {
       // When removed...
       delete currentPageElements[id];
       delete pageWords[id];
       saveUpdatedData();
       el.remove();
+      hideProps();
     }, () => {
       // When clicked...
-      // TODO
-      console.log("clicked word", id);
+      showProps('WORD', id);
     });
-    
+
+    const dictionary = data.dictionary ?? {};
+    if (dictionary) {
+      const dictionaryId = getDictionaryId(pageId, word);
+      const dictionaryWord = dictionary[dictionaryId];
+
+      /** @type {HTMLDivElement} */(el.querySelector('.word-meaning')).textContent = dictionaryWord?.tran ?? '';
+    }
+
     currentPageElements[id] = el;
   }
 
   const pageSymbols = pageData.symbols;
   for (const id in pageSymbols) {
-    const data = pageSymbols[id];
-    const el = createDrawingElement('SYMBOL', data.x, data.y, data.w, data.h, () => {
+    const symbol = pageSymbols[id];
+    const el = createDrawingElement('SYMBOL', symbol.x, symbol.y, symbol.w, symbol.h, () => {
       // When removed...
       delete currentPageElements[id];
       delete pageSymbols[id];
       saveUpdatedData();
       el.remove();
+      hideProps();
     }, () => {
       // When clicked...
-      // TODO
-      console.log("clicked symbol", id);
+      showProps('SYMBOL', id);
     });
 
     currentPageElements[id] = el;
@@ -478,17 +513,22 @@ const loadPageElements = (pageId) => {
 
   const pageLinks = pageData.links;
   for (const id in pageLinks) {
-    const data = pageLinks[id];
-    const el = createDrawingElement('LINK', data.x, data.y, data.w, data.h, () => {
+    const link = pageLinks[id];
+    const el = createDrawingElement('LINK', link.x, link.y, link.w, link.h, () => {
       // When removed...
       delete currentPageElements[id];
       delete pageLinks[id];
       saveUpdatedData();
       el.remove();
+      hideProps();
     }, () => {
       // When clicked...
-      // TODO
-      console.log("clicked link", id);
+      if (currentEditMode == 'VIEW') {
+        goToPage(link.ref ?? TOC_PAGE_ID);
+      }
+      else {
+        showProps('LINK', id);
+      }
     });
 
     currentPageElements[id] = el;
@@ -504,41 +544,276 @@ data = /** @type {Database | null}*/(JSON.parse(localStorage.getItem('tunic_manu
 
 //#endregion
 
+//#region UI (props)
+
+/** @type {Partial<Record<EditMode, HTMLDivElement>>} */
+const PROPS_ELEMENTS = {
+  'WORD': propsWord,
+  'SYMBOL': propsSymbol,
+  'LINK': propsLink,
+};
+
+/** @type {EditMode | null} */
+let currentlyVisibleProps = null;
+
+/** @type {GUID | null} */
+let currentlyVisiblePropsId = null;
+
+/**
+ * @param {EditMode} element
+ * @param {GUID} id
+ */
+const showProps = (element, id) => {
+  hideProps();
+
+  PROPS_ELEMENTS[element]?.classList.remove('hidden');
+  currentlyVisibleProps = element;
+  currentlyVisiblePropsId = id;
+
+  const page = data.pages ??= {};
+  const currentPage = page[pageSelect.value] ??= {};
+  const pageWords = currentPage.words ??= {};
+  const pageSymbols = currentPage.symbols ??= {};
+  const pageLinks = currentPage.links ??= {};
+
+  if (currentlyVisibleProps == 'WORD') {
+    const word = pageWords[id];
+    if (word)
+      loadWord(pageSelect.value, word);
+  }
+  else if (currentlyVisibleProps == 'SYMBOL') {
+    const symbol = pageSymbols[id];
+    if (symbol)
+      loadSymbol(symbol);
+  }
+  else if (currentlyVisibleProps == 'LINK') {
+    linksRefSelect.value = pageLinks[id]?.ref ?? TOC_PAGE_ID;
+  }
+};
+
+const hideProps = () => {
+  if (currentlyVisibleProps)
+    PROPS_ELEMENTS[currentlyVisibleProps]?.classList.add('hidden');
+
+  currentlyVisibleProps = null;
+  currentlyVisiblePropsId = null;
+};
+
+// Words
+
+let lastSelectedWord = '';
+
+/**
+ * @param {number} pageId
+ * @param {SymbolData} word
+ */
+const getDictionaryId = (pageId, word) => {
+  const page = data.pages ??= {};
+  const currentPage = page[pageId] ??= {};
+  const pageSymbols = currentPage.symbols ??= {};
+
+  /** @type {{ x: number, v: number }[]} */
+  const wordSymbols = [];
+
+  for (const id in pageSymbols) {
+    const symbol = pageSymbols[id];
+
+    const symbolArea = symbol.w * symbol.h;
+    const overlappingArea = Math.max(0, Math.min(word.x + word.w, symbol.x + symbol.w) - Math.max(word.x, symbol.x)) * Math.max(0, Math.min(word.y + word.h, symbol.y + symbol.h) - Math.max(word.y, symbol.y));
+
+    if (overlappingArea * 2 > symbolArea)
+      wordSymbols.push({ x: symbol.x, v: symbol.v ?? 0 });
+  }
+
+  // TODO: handle upside-down words (add a checkbox on the word rectangle), sorting symbols from right to left.
+  wordSymbols.sort((a, b) => a.x - b.x);
+
+  return wordSymbols.map(s => s.v.toString(36)).join('-');
+};
+
+/**
+ * @param {number} pageId
+ * @param {SymbolData} word
+ */
+const loadWord = (pageId, word) => {
+  lastSelectedWord = getDictionaryId(pageId, word);
+
+  // TODO: clear existing symbols in UI.
+
+  // TODO: add word symbols to UI.
+
+  const dictionary = data.dictionary ??= {};
+  const currentWord = dictionary[lastSelectedWord] ??= {};
+
+  wordMeaningInput.value = currentWord.tran ?? '';
+  wordNotesTextarea.value = currentWord.note ?? '';
+
+  // TODO: add preview image for the word to the UI.
+};
+
+wordMeaningInput.addEventListener('keyup', ev => {
+  const dictionary = data.dictionary ??= {};
+  const currentWord = dictionary[lastSelectedWord] ??= {};
+
+  if (currentWord.tran != wordMeaningInput.value) {
+    currentWord.tran = wordMeaningInput.value;
+    saveUpdatedData();
+  }
+});
+
+wordNotesTextarea.addEventListener('keyup', ev => {
+  const dictionary = data.dictionary ??= {};
+  const currentWord = dictionary[lastSelectedWord] ??= {};
+
+  if (currentWord.note != wordNotesTextarea.value) {
+    currentWord.note = wordNotesTextarea.value;
+    saveUpdatedData();
+  }
+});
+
+// Symbols
+const SYMBOL_PATHS = [
+  symbolOuterTopLeftPath,
+  symbolOuterTopRightPath,
+  symbolOuterLeftPath,
+  symbolOuterBottomLeftPath,
+  symbolOuterBottomRightPath,
+  symbolInnerTopLeftPath,
+  symbolInnerTopMiddlePath,
+  symbolInnerTopRightPath,
+  symbolInnerBottomLeftPath,
+  symbolInnerBottomMiddlePath,
+  symbolInnerBottomRightPath,
+  symbolCirclePath,
+];
+
+/** @param {SymbolData} symbol */
+const loadSymbol = (symbol) => {
+  for (let i = 0; i < SYMBOL_PATHS.length; i++)
+    SYMBOL_PATHS[i].classList.toggle('active', Boolean(((symbol.v ?? 0) >> i) & 1));
+
+  symbolPreview.style.backgroundImage = `url('${PAGES[pageSelect.value].src.replaceAll('\\', '\\\\').replaceAll('\'', '\'\'')}')`;
+  symbolPreview.style.backgroundPositionX = `${-symbol.x}px`;
+  symbolPreview.style.backgroundPositionY = `${-symbol.y}px`;
+};
+
+for (let i = 0; i < SYMBOL_PATHS.length; i++) {
+  const index = i;
+  const toggle = () => {
+    if (!currentlyVisiblePropsId)
+      return;
+
+    const page = data.pages ??= {};
+    const currentPage = page[pageSelect.value] ??= {};
+    const pageSymbols = currentPage.symbols ??= {};
+    const symbol = pageSymbols[currentlyVisiblePropsId];
+
+    if (!symbol)
+      return;
+
+    symbol.v = (symbol.v ?? 0) ^ (1 << index);
+    saveUpdatedData();
+
+    SYMBOL_PATHS[index].classList.toggle('active', Boolean((symbol.v >> index) & 1));
+  };
+
+  SYMBOL_PATHS[i].addEventListener('mouseenter', ev => {
+    if (ev.defaultPrevented || ev.buttons != 1)
+      return;
+
+    ev.preventDefault();
+
+    toggle();
+  });
+
+  SYMBOL_PATHS[i].addEventListener('click', ev => {
+    if (ev.defaultPrevented || ev.button != 0)
+      return;
+    
+    ev.preventDefault();
+
+    toggle();
+  });
+}
+
+// Links
+for (const id in PAGES) {
+  const opt = /** @type {HTMLOptionElement} */(linksRefSelectOptionTemplate.cloneNode(true));
+  opt.value = id;
+  opt.textContent = PAGES[id].label;
+
+  linksRefSelectOptionTemplate.parentElement?.insertBefore(opt, linksRefSelectOptionTemplate);
+}
+linksRefSelectOptionTemplate.remove();
+
+linksRefSelect.addEventListener('change', ev => {
+  if (!currentlyVisiblePropsId)
+    return;
+
+  ev.preventDefault();
+
+  const page = data.pages ??= {};
+  const currentPage = page[pageSelect.value] ??= {};
+  const pageLinks = currentPage.links ??= {};
+  const link = pageLinks[currentlyVisiblePropsId];
+
+  if (!link)
+    return;
+
+  link.ref = linksRefSelect.value;
+  saveUpdatedData();
+});
+
+//#endregion
+
 //#region Keyboard shortcuts
 
+const FOCUS_WHITELIST = ['INPUT', 'TEXTAREA', 'SELECT'];
+
 window.addEventListener('keyup', ev => {
-  console.log(ev.key);
+  if (FOCUS_WHITELIST.includes(document.activeElement?.tagName ?? ''))
+    return;
+
+  console.debug(ev.key);
+
   switch (ev.key) {
     case 'ArrowLeft':
+      ev.preventDefault();
       goToPrevPage();
       break;
 
     case 'ArrowRight':
+      ev.preventDefault();
       goToNextPage();
       break;
 
     case 'i':
     case 'I':
+      ev.preventDefault();
       goToPage(TOC_PAGE_ID);
       break;
 
     case 'v':
     case 'V':
+      ev.preventDefault();
       setEditMode('VIEW');
       break;
 
     case 'w':
     case 'W':
+      ev.preventDefault();
       setEditMode('WORD');
       break;
 
     case 's':
     case 'S':
+      ev.preventDefault();
       setEditMode('SYMBOL');
       break;
 
     case 'l':
     case 'L':
+      ev.preventDefault();
       setEditMode('LINK');
       break;
   }
@@ -547,3 +822,4 @@ window.addEventListener('keyup', ev => {
 //#endregion
 
 goToPage(pageSelect.value);
+setEditMode(currentEditMode);

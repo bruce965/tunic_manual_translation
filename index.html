@@ -10,7 +10,7 @@
   <div id="page">
     <img alt="No page loaded" />
     <div class="word">
-      <span class="word-meaning">Hello</span>
+      <span class="word-meaning"></span>
       <button class="remove">x</button>
     </div>
     <div class="symbol">
@@ -45,7 +45,34 @@
     </div>
     <hr/>
     <div class="section">
-      TODO
+      <div class="word-symbols">
+        <svg viewBox="0 0 24 42">
+          <g fill="none" stroke="#0000" stroke-linecap="round">
+            <path class="word_outer_top_left" d="M 3,9 12,3" />
+            <path class="word_outer_top_right" d="m 12,3 9,6" />
+            <path class="word_outer_left" d="m 3,21 v 6 M 3,9 v 9" />
+            <path class="word_outer_bottom_left" d="m 3,27 9,6" />
+            <path class="word_outer_bottom_right" d="m 12,33 9,-6" />
+            <path class="word_inner_top_left" d="m 3,9 9,6" />
+            <path class="word_inner_top_middle" d="M 12,3 V 18" />
+            <path class="word_inner_top_right" d="M 12,15 21,9" />
+            <path class="word_inner_bottom_left" d="m 3,27 9,-6" />
+            <path class="word_inner_bottom_middle" d="m 12,15 v 3 m 0,3 v 12" />
+            <path class="word_inner_bottom_right" d="m 12,21 9,6" />
+            <circle class="word_circle" cx="12" cy="36.2" r="2.8" />
+            <path d="M 3,18 H 21" class="active" />
+          </g>
+        </svg>
+      </div>
+    </div>
+    <label class="spacing section">
+      Meaning:
+      <input id="word_meaning" class="button"/>
+    </label>
+    <textarea id="word_notes" class="button spacing section" placeholder="Notes"></textarea>
+    <hr/>
+    <div class="section">
+      <div id="word_preview"></div>
     </div>
   </div>
 
@@ -55,11 +82,45 @@
     </div>
     <hr/>
     <div class="section">
-      TODO
+      <svg class="symbol-editor" viewBox="0 0 24 42">
+        <g fill="none" stroke="#282828" stroke-linecap="round">
+          <path d="M 3,9 12,3" />
+          <path d="m 12,3 9,6" />
+          <path d="m 3,21 v 6 M 3,9 v 9" />
+          <path d="m 3,27 9,6" />
+          <path d="m 12,33 9,-6" />
+          <path d="m 3,9 9,6" />
+          <path d="M 12,3 V 18" />
+          <path d="M 12,15 21,9" />
+          <path d="m 3,27 9,-6" />
+          <path d="m 12,15 v 3 m 0,3 v 12" />
+          <path d="m 12,21 9,6" />
+          <circle cx="12" cy="36.2" r="2.8" />
+        </g>
+        <g fill="none" stroke="#0000" stroke-linecap="round">
+          <path id="outer_top_left" d="M 3,9 12,3" />
+          <path id="outer_top_right" d="m 12,3 9,6" />
+          <path id="outer_left" d="m 3,21 v 6 M 3,9 v 9" />
+          <path id="outer_bottom_left" d="m 3,27 9,6" />
+          <path id="outer_bottom_right" d="m 12,33 9,-6" />
+          <path id="inner_top_left" d="m 3,9 9,6" />
+          <path id="inner_top_middle" d="M 12,3 V 18" />
+          <path id="inner_top_right" d="M 12,15 21,9" />
+          <path id="inner_bottom_left" d="m 3,27 9,-6" />
+          <path id="inner_bottom_middle" d="m 12,15 v 3 m 0,3 v 12" />
+          <path id="inner_bottom_right" d="m 12,21 9,6" />
+          <circle id="circle" cx="12" cy="36.2" r="2.8" />
+          <path d="M 3,18 H 21" class="active" />
+        </g>
+      </svg>
+    </div>
+    <hr/>
+    <div class="section">
+      <div id="symbol_preview"></div>
     </div>
   </div>
 
-  <div id="props_link" class="ui">
+  <div id="props_link" class="ui hidden">
     <div class="section">
       <span class="center">Link</span>
     </div>

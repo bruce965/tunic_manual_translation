@@ -49,6 +49,10 @@ html {
     }
   }
 
+  .spacing {
+    margin-top: .6rem;
+  }
+
   .center {
     text-align: center;
   }
@@ -66,21 +70,89 @@ html {
   width: 15rem;
 }
 
-#props_word, #props_symbol, #props_link {
+#props_word {
   top: 1rem;
   right: 1rem;
 
-  width: 15rem;
+  width: 20rem;
+}
+
+#props_symbol {
+  top: 1rem;
+  right: 1rem;
+
+  width: 30rem;
+}
+
+#props_link {
+  top: 1rem;
+  right: 1rem;
+
+  width: 10rem;
 }
 
 .button {
   padding: .2em .6em;
   border: 0;
   border-radius: .2em;
+  
+  textarea& {
+    width: 100%;
+    height: 3rem;
+    box-sizing: border-box;
 
+    resize: none;
+  }
 
   &.active {
     background: #088;
+  }
+}
+
+.word-symbols {
+  display: flex;
+  justify-content: center;
+
+  border-radius: 1rem;
+
+  padding: 1rem;
+  max-height: 15rem;
+  background: #222;
+
+  svg {
+    width: 3em;
+    margin: 0 calc(-3em / 8);
+
+    .active {
+      stroke: #fff;
+    }
+  }
+}
+
+.symbol-editor {
+  border-radius: 1rem;
+
+  padding: 1rem;
+  max-height: 15rem;
+  background: #222;
+
+  path, circle {
+    cursor: pointer;
+  }
+
+  .active {
+    stroke: #fff;
+  }
+}
+
+#symbol_preview, #word_preview {
+  background: black;
+  background-repeat: no-repeat;
+
+  &::after {
+    content: '';
+    display: block;
+    margin-bottom: 100%;
   }
 }
 
