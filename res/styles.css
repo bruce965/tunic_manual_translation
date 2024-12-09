@@ -96,6 +96,10 @@ html {
   border: 0;
   border-radius: .2em;
   
+  input[type=number]& {
+    padding-right: 0;
+  }
+
   textarea& {
     width: 100%;
     height: 3rem;
@@ -123,6 +127,12 @@ html {
     width: 3em;
     margin: 0 calc(-3em / 8);
 
+    --stroke-color: #fff;
+
+    &.suffix g {
+      --stroke-color: #08f;
+    }
+
     .word_middle_line,
     &[data-symbol*='a'] .word_outer_top_left,
     &[data-symbol*='b'] .word_outer_top_right,
@@ -136,7 +146,7 @@ html {
     &[data-symbol*='j'] .word_inner_bottom_middle,
     &[data-symbol*='k'] .word_inner_bottom_right,
     &[data-symbol*='l'] .word_circle {
-      stroke: #fff;
+      stroke: var(--stroke-color);
     }
   }
 }

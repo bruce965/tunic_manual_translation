@@ -30,6 +30,8 @@ const wordSymbols = /** @type {SVGElement} */(/** @type {unknown} */(document.qu
 const wordSymbolTemplate = /** @type {SVGSVGElement} */(wordSymbols.querySelector('svg'));
 const wordMeaningInput = /** @type {HTMLInputElement} */(document.getElementById('word_meaning'));
 const wordNotesTextarea = /** @type {HTMLTextAreaElement} */(document.getElementById('word_notes'));
+const wordSuffixMeaningInput = /** @type {HTMLInputElement} */(document.getElementById('word_suffix_meaning'));
+const wordSuffixLengthInput = /** @type {HTMLInputElement} */(document.getElementById('word_suffix_length'));
 
 const symbolOuterTopLeftPath = /** @type {SVGPathElement} */(/** @type {unknown} */(document.getElementById('outer_top_left')));
 const symbolOuterTopRightPath = /** @type {SVGPathElement} */(/** @type {unknown} */(document.getElementById('outer_top_right')));
@@ -441,7 +443,7 @@ panBy(0, 0);
 
 /** @typedef {string} GUID */
 
-/** @typedef {{ x: number, y: number, w: number, h: number }} WordData */
+/** @typedef {{ x: number, y: number, w: number, h: number, suf?: number }} WordData */
 
 /** @typedef {{ x: number, y: number, w: number, h: number, v?: number }} SymbolData */
 
@@ -489,10 +491,13 @@ const loadPageElements = (pageId) => {
     const dictionary = data.dictionary ?? {};
     if (dictionary) {
       const wordSymbols = getWordSymbols(pageId, word);
-      const dictionaryId = getDictionaryId(wordSymbols);
-      const dictionaryWord = dictionary[dictionaryId];
+      const suffixLength = Math.max(0, word.suf ?? 0);
+      const wordId = getDictionaryId(wordSymbols.slice(0, wordSymbols.length - suffixLength));
+      const suffixId = getDictionaryId(wordSymbols.slice(-suffixLength), true);
+      const dictionaryWord = dictionary[wordId];
+      const dictionarySuffix = dictionary[suffixId];
 
-      /** @type {HTMLDivElement} */(el.querySelector('.word-meaning')).textContent = dictionaryWord?.tran ?? '';
+      /** @type {HTMLDivElement} */(el.querySelector('.word-meaning')).textContent = (dictionaryWord?.tran ?? '') + (dictionarySuffix?.tran ?? '');
     }
 
     currentPageElements[id] = el;
@@ -540,6 +545,22 @@ const loadPageElements = (pageId) => {
     });
 
     currentPageElements[id] = el;
+  }
+};
+
+const sortRecursive = (obj) => {
+  if (typeof obj == 'object') {
+    const sortedKeys = Object.keys(obj).sort();
+    const copy = { ...obj };
+
+    for (const k in obj)
+      delete obj[k];
+
+    for (const k of sortedKeys)
+      obj[k] = copy[k];
+
+    for (const k of sortedKeys)
+      sortRecursive();
   }
 };
 
@@ -609,10 +630,11 @@ const hideProps = () => {
 
 // Words
 
-let lastSelectedWord = '';
+/** @type {{ word: WordData, symbols: number[] } | null} */
+let lastSelectedWord = null;
 
 /**
- * @param {number} pageId
+ * @param {string} pageId
  * @param {SymbolData} word
  */
 const getWordSymbols = (pageId, word) => {
@@ -640,8 +662,8 @@ const getWordSymbols = (pageId, word) => {
 };
 
 /** @param {number[]} wordSymbols */
-const getDictionaryId = (wordSymbols) => {
-  return wordSymbols.map(v => v.toString(36)).join('-');
+const getDictionaryId = (wordSymbols, suffix = false) => {
+  return (suffix ? '-' : '') + wordSymbols.map(v => v.toString(36)).join('-');
 };
 
 /** @param {number} symbol */
@@ -656,35 +678,56 @@ const getSymbolMaskForCss = (symbol) => {
 };
 
 /**
- * @param {number} pageId
+ * @param {string} pageId
  * @param {SymbolData} word
  */
 const loadWord = (pageId, word) => {
-  const selectedWordSymbols = getWordSymbols(pageId, word);
-  lastSelectedWord = getDictionaryId(selectedWordSymbols);
+  lastSelectedWord = { word, symbols: getWordSymbols(pageId, word) };
+  refreshWord();
+};
+
+const refreshWord = () => {
+  if (!lastSelectedWord)
+    return;
+
+  const suffixLength = Math.max(0, lastSelectedWord.word.suf ?? 0);
+  const wordId = getDictionaryId(lastSelectedWord.symbols.slice(0, lastSelectedWord.symbols.length - suffixLength));
+  const suffixId = getDictionaryId(lastSelectedWord.symbols.slice(-suffixLength), true);
 
   while (wordSymbols.firstChild)
     wordSymbols.firstChild.remove();
 
-  for (const symbol of selectedWordSymbols) {
+  for (let i = 0; i < lastSelectedWord.symbols.length; i++) {
+    const symbol = lastSelectedWord.symbols[i];
     const symbolMask = getSymbolMaskForCss(symbol);
     const el = /** @type {SVGSVGElement} */(wordSymbolTemplate.cloneNode(true));
     el.setAttribute('data-symbol', symbolMask);
+    el.classList.toggle('suffix', lastSelectedWord.symbols.length - i <= suffixLength);
     wordSymbols.appendChild(el);
   }
 
   const dictionary = data.dictionary ??= {};
-  const currentWord = dictionary[lastSelectedWord] ??= {};
+  const currentWord = dictionary[wordId] ??= {};
+  const currentSuffix = dictionary[suffixId] ??= {};
 
   wordMeaningInput.value = currentWord.tran ?? '';
   wordNotesTextarea.value = currentWord.note ?? '';
+  wordSuffixMeaningInput.value = suffixLength == 0 ? "-" : (currentSuffix.tran ?? '');
+  wordSuffixMeaningInput.disabled = suffixLength == 0;
+  wordSuffixLengthInput.value = String(suffixLength);
 };
 
 wordSymbolTemplate.remove();
 
 wordMeaningInput.addEventListener('keyup', ev => {
+  if (!lastSelectedWord)
+    return;
+
+  const suffixLength = lastSelectedWord.word.suf ?? 0;
+  const wordId = getDictionaryId(lastSelectedWord.symbols.slice(0, lastSelectedWord.symbols.length - suffixLength));
+
   const dictionary = data.dictionary ??= {};
-  const currentWord = dictionary[lastSelectedWord] ??= {};
+  const currentWord = dictionary[wordId] ??= {};
 
   if (currentWord.tran != wordMeaningInput.value) {
     currentWord.tran = wordMeaningInput.value;
@@ -692,9 +735,42 @@ wordMeaningInput.addEventListener('keyup', ev => {
   }
 });
 
-wordNotesTextarea.addEventListener('keyup', ev => {
+wordSuffixLengthInput.addEventListener('change', ev => {
+  if (!lastSelectedWord)
+    return;
+
+  const suffixLength = Number(wordSuffixLengthInput.value) || 0;
+  lastSelectedWord.word.suf = suffixLength;
+  saveUpdatedData();
+
+  refreshWord();
+});
+
+wordSuffixMeaningInput.addEventListener('keyup', ev => {
+  if (!lastSelectedWord)
+    return;
+
+  const suffixLength = lastSelectedWord.word.suf ?? 0;
+  const suffixId = getDictionaryId(lastSelectedWord.symbols.slice(-suffixLength), true);
+
   const dictionary = data.dictionary ??= {};
-  const currentWord = dictionary[lastSelectedWord] ??= {};
+  const currentSuffix = dictionary[suffixId] ??= {};
+
+  if (currentSuffix.tran != wordSuffixMeaningInput.value) {
+    currentSuffix.tran = wordSuffixMeaningInput.value;
+    saveUpdatedData();
+  }
+});
+
+wordNotesTextarea.addEventListener('keyup', ev => {
+  if (!lastSelectedWord)
+    return;
+
+  const suffixLength = lastSelectedWord.word.suf ?? 0;
+  const wordId = getDictionaryId(lastSelectedWord.symbols.slice(0, lastSelectedWord.symbols.length - suffixLength));
+
+  const dictionary = data.dictionary ??= {};
+  const currentWord = dictionary[wordId] ??= {};
 
   if (currentWord.note != wordNotesTextarea.value) {
     currentWord.note = wordNotesTextarea.value;
