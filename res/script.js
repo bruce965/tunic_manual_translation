@@ -565,8 +565,10 @@ const sortRecursive = (obj) => {
 };
 
 const saveUpdatedData = () => {
+  sortRecursive(data);
+
   localStorage.setItem('tunic_manual_translation.data', JSON.stringify(data));
-  console.debug("Updated data:", JSON.stringify(data));
+  console.debug("Updated data:", JSON.stringify(data, null, "  "));
 };
 
 data = /** @type {Database | null}*/(JSON.parse(localStorage.getItem('tunic_manual_translation.data') || 'null')) ?? data;
